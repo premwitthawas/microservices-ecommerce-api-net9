@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  ecommerce-order-db:
+    image: mongo:latest
+    container_name: ecommerce-order-db
+    ports:
+      - "4988:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00
+    volumes:
+      - mongodb:/data/db
+volumes:
+  mongodb:
