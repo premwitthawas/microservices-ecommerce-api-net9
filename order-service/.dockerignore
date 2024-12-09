@@ -1,0 +1,49 @@
+# Binaries
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and database files
+*.log
+*.tlog
+*.dmp
+*.mdf
+*.ldf
+
+# Temporary files
+*.tmp
+*.tmp.*
+*.bak
+*.swp
+*~
+
+# IDE-specific files
+.vscode/
+.idea/
+*.code-workspace
+
+# Git-related files
+.git/
+.gitignore
+
+# Docker-specific files
+.dockerignore
+docker-compose*
+
+# Node.js files (if using front-end)
+node_modules/
+npm-debug.log
+
+# Secrets (Add this carefully based on your project structure)
+appsettings.Development.json
+appsettings.*.local.json
+.env
+.env.*
+
+# Publish output (if pre-building)
+publish/

@@ -1,4 +1,17 @@
 services:
+  ecommerce-order-db:
+    image: mongo:latest
+    container_name: ecommerce-order-db
+    networks:
+      - microservice-application-app-networks
+    ports:
+      - "4988:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00
+    volumes:
+      - ./mongo-init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongodb:/data/db
   ecommerce-db-auth:
     image: postgres:16.2-alpine3.19
     container_name: ecommerce-db-auth
@@ -49,6 +62,21 @@ services:
       - ecommerce-db-product
     networks:
       - microservice-application-app-networks
+  ecommerce-orders-api-service:
+    image: pzwitthawasdev/ecommerce-orders-api-service:latest
+    container_name: ecommerce-orders-api-service
+    ports:
+      - "4002:8080"
+    environment:
+        MONGO_USER: "root"
+        MONGO_PASSWORD: "8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00"
+        MONGO_HOST: "ecommerce-order-db"
+        MONGO_PORT: "27017"
+        ConnectionStrings__MongoDbConnection: "mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}"
+    depends_on:
+      - ecommerce-order-db
+    networks:
+      - microservice-application-app-networks
 networks:
   microservice-application-app-networks:
     driver: bridge
@@ -56,4 +84,6 @@ volumes:
   pg-database:
     driver: local
   mysql-database:
+    driver: local
+  mongodb:
     driver: local

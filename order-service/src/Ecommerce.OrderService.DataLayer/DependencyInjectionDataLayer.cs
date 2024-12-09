@@ -10,11 +10,17 @@ public static class DependencyInjectionDataLayer
 
     public static IServiceCollection AddDataLayer(this IServiceCollection services, IConfiguration configuration)
     {
-        string connectionStringTempate = configuration.GetConnectionString("MongoDbConnection")!;
-        string connectionString = connectionStringTempate.Replace("$MONGO_USER", Environment.GetEnvironmentVariable("MONGO_USER"))
-        .Replace("$MONGO_PASSWORD", Environment.GetEnvironmentVariable("MONGO_PASSWORD"))
-        .Replace("$MONGO_HOST", Environment.GetEnvironmentVariable("MONGO_HOST"))
-        .Replace("$MONGO_PORT", Environment.GetEnvironmentVariable("MONGO_PORT"));
+        string connectionStringTemplate = configuration.GetConnectionString("MongoDbConnection");
+        string mongoUser = Environment.GetEnvironmentVariable("MONGO_USER") ?? "defaultUser";
+        string mongoPassword = Environment.GetEnvironmentVariable("MONGO_PASSWORD") ?? "defaultPassword";
+        string mongoHost = Environment.GetEnvironmentVariable("MONGO_HOST") ?? "localhost";
+        string mongoPort = Environment.GetEnvironmentVariable("MONGO_PORT") ?? "27017";
+        string connectionString = connectionStringTemplate
+             .Replace("{MONGO_USER}", mongoUser)
+             .Replace("{MONGO_PASSWORD}", mongoPassword)
+             .Replace("{MONGO_HOST}", mongoHost)
+             .Replace("{MONGO_PORT}", mongoPort);
+        Console.WriteLine($"Generated Connection String: {connectionString}");
         services.AddSingleton<IMongoClient>(new MongoClient(connectionString));
         services.AddScoped<IMongoDatabase>(provider =>
         {

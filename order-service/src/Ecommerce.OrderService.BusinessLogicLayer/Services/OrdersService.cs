@@ -1,4 +1,5 @@
 using AutoMapper;
+using AutoMapper.Internal.Mappers;
 using Ecommerce.OrderService.BusinessLogicLayer.DTOs;
 using Ecommerce.OrderService.BusinessLogicLayer.ServiceContacts;
 using Ecommerce.OrderService.DataLayer.Models;
@@ -15,13 +16,17 @@ public class OrdersService : IOrdersService
     private IOrdersRepository _ordersRepository;
     private IValidator<OrderAddRequest> _orderAddRequestValidator;
     private IValidator<OrderItemAddRequest> _orderItemAddRequestValidator;
+    private IValidator<OrderUpdateRequest> _orderUpdateRequestValidator;
+    private IValidator<OrderItemUpdateRequest> _orderItemUpdateRequestValidator;
 
-    public OrdersService(IMapper mapper, IOrdersRepository ordersRepository, IValidator<OrderAddRequest> orderAddRequestValidator, IValidator<OrderItemAddRequest> orderItemAddRequestValidator)
+    public OrdersService(IMapper mapper, IOrdersRepository ordersRepository, IValidator<OrderAddRequest> orderAddRequestValidator, IValidator<OrderItemAddRequest> orderItemAddRequestValidator, IValidator<OrderUpdateRequest> orderUpdateRequestValidator, IValidator<OrderItemUpdateRequest> orderItemUpdateRequestValidator)
     {
         _mapper = mapper;
         _ordersRepository = ordersRepository;
         _orderAddRequestValidator = orderAddRequestValidator;
         _orderItemAddRequestValidator = orderItemAddRequestValidator;
+        _orderUpdateRequestValidator = orderUpdateRequestValidator;
+        _orderItemUpdateRequestValidator = orderItemUpdateRequestValidator;
     }
 
     public async Task<OrderResponse?> AddOrderAsync(OrderAddRequest orderAddRequest)
@@ -64,28 +69,77 @@ public class OrdersService : IOrdersService
         return orderResponse;
     }
 
-    public Task<bool> DeleteOrderAsync(Guid orderID)
+    public async Task<bool> DeleteOrderAsync(Guid orderID)
     {
-        throw new NotImplementedException();
+        FilterDefinition<Order> filter = Builders<Order>.Filter.Eq(x => x.OrderID, orderID);
+        Order? orderExisting = await _ordersRepository.GetOrderByCondition(filter);
+        if (orderExisting == null)
+        {
+            return false;
+        }
+        bool isDeleted = await _ordersRepository.DelelteOrderAsync(orderID);
+        return isDeleted;
     }
 
-    public Task<OrderResponse?> GetOrderByCondtitionAsync(FilterDefinition<Order> filter)
+    public async Task<OrderResponse?> GetOrderByCondtitionAsync(FilterDefinition<Order> filter)
     {
-        throw new NotImplementedException();
+        Order? order = await _ordersRepository.GetOrderByCondition(filter);
+        if (order == null)
+        {
+            return null;
+        }
+        OrderResponse orderResponse = _mapper.Map<OrderResponse>(order);
+        return orderResponse;
     }
 
-    public Task<List<OrderResponse?>> GetOrdersAsync()
+    public async Task<List<OrderResponse?>> GetOrdersAsync()
     {
-        throw new NotImplementedException();
+        IEnumerable<Order?> orders = await _ordersRepository.GetOrdersAsync();
+        IEnumerable<OrderResponse?> orderResponses = _mapper.Map<IEnumerable<OrderResponse>>(orders);
+        return orderResponses.ToList();
     }
 
-    public Task<List<OrderResponse?>> GetOrdersByCondtitionAsync(FilterDefinition<Order> filter)
+    public async Task<List<OrderResponse?>> GetOrdersByCondtitionAsync(FilterDefinition<Order> filter)
     {
-        throw new NotImplementedException();
+        IEnumerable<Order?> orders = await _ordersRepository.GetOrdersByCondition(filter);
+        IEnumerable<OrderResponse?> orderResponses = _mapper.Map<IEnumerable<OrderResponse>>(orders);
+        return orderResponses.ToList();
     }
 
-    public Task<OrderResponse?> UpdateOrderAsync(OrderUpdateRequest orderUpdateRequest)
+    public async Task<OrderResponse?> UpdateOrderAsync(OrderUpdateRequest orderUpdateRequest)
     {
-        throw new NotImplementedException();
+        if (orderUpdateRequest == null)
+        {
+            throw new ArgumentNullException(nameof(orderUpdateRequest));
+        }
+        ValidationResult validateUpdateOrderRequest = await _orderUpdateRequestValidator.ValidateAsync(orderUpdateRequest);
+        if (!validateUpdateOrderRequest.IsValid)
+        {
+            string erros = String.Join(", ", validateUpdateOrderRequest.Errors.Select(x => x.ErrorMessage));
+            throw new ArgumentException(erros);
+        }
+        foreach (OrderItemUpdateRequest orderItem in orderUpdateRequest.OrderItems)
+        {
+            ValidationResult validateUpdateOrderItemRequest = await _orderItemUpdateRequestValidator.ValidateAsync(orderItem);
+            if (!validateUpdateOrderItemRequest.IsValid)
+            {
+                string errors = String.Join(", ", validateUpdateOrderItemRequest.Errors.Select(x => x.ErrorMessage));
+                throw new ArgumentException(errors);
+            }
+        }
+        //TODO: Check if user and product
+        Order order = _mapper.Map<Order>(orderUpdateRequest);
+        foreach (OrderItem orderItem in order.OrderItems)
+        {
+            orderItem.TotalPrice = orderItem.Quantity * orderItem.UnitPrice;
+        }
+        order.TotalBill = order.OrderItems.Sum(x => x.TotalPrice);
+        Order? updatedOrder = await _ordersRepository.UpdateOrderAsync(order);
+        if (updatedOrder == null)
+        {
+            return null;
+        }
+        OrderResponse orderResponse = _mapper.Map<OrderResponse>(updatedOrder);
+        return orderResponse;
     }
 };

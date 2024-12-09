@@ -4,9 +4,16 @@ using Ecommerce.OrderService.BusinessLogicLayer;
 using Ecommerce.OrderService.DataLayer;
 using FluentValidation.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
-Env.Load("./.env");
-builder.Services.AddControllers();
+if (builder.Environment.IsDevelopment())
+{
+    Env.Load();
+}
+// Console.WriteLine($"MONGO_USER: {Environment.GetEnvironmentVariable("MONGO_USER")}");
+// Console.WriteLine($"MONGO_PASSWORD: {Environment.GetEnvironmentVariable("MONGO_PASSWORD")}");
+// Console.WriteLine($"MONGO_HOST: {Environment.GetEnvironmentVariable("MONGO_HOST")}");
+// Console.WriteLine($"MONGO_PORT: {Environment.GetEnvironmentVariable("MONGO_PORT")}");
 builder.Services.AddDataLayer(builder.Configuration);
+builder.Services.AddControllers();
 builder.Services.AddBusinessLogicLayer();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddEndpointsApiExplorer();
