@@ -1,6 +1,7 @@
 using AutoMapper;
 using AutoMapper.Internal.Mappers;
 using Ecommerce.OrderService.BusinessLogicLayer.DTOs;
+using Ecommerce.OrderService.BusinessLogicLayer.HttpClients;
 using Ecommerce.OrderService.BusinessLogicLayer.ServiceContacts;
 using Ecommerce.OrderService.DataLayer.Models;
 using Ecommerce.OrderService.DataLayer.RepositoryContacts;
@@ -18,8 +19,8 @@ public class OrdersService : IOrdersService
     private IValidator<OrderItemAddRequest> _orderItemAddRequestValidator;
     private IValidator<OrderUpdateRequest> _orderUpdateRequestValidator;
     private IValidator<OrderItemUpdateRequest> _orderItemUpdateRequestValidator;
-
-    public OrdersService(IMapper mapper, IOrdersRepository ordersRepository, IValidator<OrderAddRequest> orderAddRequestValidator, IValidator<OrderItemAddRequest> orderItemAddRequestValidator, IValidator<OrderUpdateRequest> orderUpdateRequestValidator, IValidator<OrderItemUpdateRequest> orderItemUpdateRequestValidator)
+    private readonly UsersMicroserviceClient _usersMicroserviceClient;
+    public OrdersService(IMapper mapper, IOrdersRepository ordersRepository, IValidator<OrderAddRequest> orderAddRequestValidator, IValidator<OrderItemAddRequest> orderItemAddRequestValidator, IValidator<OrderUpdateRequest> orderUpdateRequestValidator, IValidator<OrderItemUpdateRequest> orderItemUpdateRequestValidator, UsersMicroserviceClient usersMicroserviceClient)
     {
         _mapper = mapper;
         _ordersRepository = ordersRepository;
@@ -27,6 +28,7 @@ public class OrdersService : IOrdersService
         _orderItemAddRequestValidator = orderItemAddRequestValidator;
         _orderUpdateRequestValidator = orderUpdateRequestValidator;
         _orderItemUpdateRequestValidator = orderItemUpdateRequestValidator;
+        _usersMicroserviceClient = usersMicroserviceClient;
     }
 
     public async Task<OrderResponse?> AddOrderAsync(OrderAddRequest orderAddRequest)
@@ -49,8 +51,13 @@ public class OrdersService : IOrdersService
                 string erros = string.Join(", ", orderItemAddRequestValidationResult.Errors.Select(x => x.ErrorMessage));
                 throw new ArgumentException(erros);
             }
-            //TODO: Check if user and product
-            //Mapping Data
+        }
+        //TODO: Check if user and product
+        //Mapping Data
+        UserDto? user = await _usersMicroserviceClient.GetUserByUserID(orderAddRequest.UserID);
+        if (user == null)
+        {
+            throw new ArgumentException("Invalid User ID");
         }
         Order orderInput = _mapper.Map<Order>(orderAddRequest);
 
@@ -128,6 +135,11 @@ public class OrdersService : IOrdersService
             }
         }
         //TODO: Check if user and product
+        UserDto? user = await _usersMicroserviceClient.GetUserByUserID(orderUpdateRequest.UserID);
+        if (user == null)
+        {
+            throw new ArgumentException("Invalid User ID");
+        }
         Order order = _mapper.Map<Order>(orderUpdateRequest);
         foreach (OrderItem orderItem in order.OrderItems)
         {

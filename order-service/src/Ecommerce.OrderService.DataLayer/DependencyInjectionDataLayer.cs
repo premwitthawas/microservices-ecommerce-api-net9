@@ -10,7 +10,7 @@ public static class DependencyInjectionDataLayer
 
     public static IServiceCollection AddDataLayer(this IServiceCollection services, IConfiguration configuration)
     {
-        string connectionStringTemplate = configuration.GetConnectionString("MongoDbConnection");
+        string connectionStringTemplate = configuration.GetConnectionString("MongoDbConnection")!;
         string mongoUser = Environment.GetEnvironmentVariable("MONGO_USER") ?? "defaultUser";
         string mongoPassword = Environment.GetEnvironmentVariable("MONGO_PASSWORD") ?? "defaultPassword";
         string mongoHost = Environment.GetEnvironmentVariable("MONGO_HOST") ?? "localhost";
@@ -25,7 +25,7 @@ public static class DependencyInjectionDataLayer
         services.AddScoped<IMongoDatabase>(provider =>
         {
             IMongoClient client = provider.GetRequiredService<IMongoClient>();
-            return client.GetDatabase("ecommerceorderservicedb");
+            return client.GetDatabase(Environment.GetEnvironmentVariable("MONGO_DATABASE"));
         });
         services.AddScoped<IOrdersRepository, OrdersRepository>();
         return services;

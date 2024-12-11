@@ -8,7 +8,7 @@ public class ApplicationUserMappingProfile : Profile
 {
     public ApplicationUserMappingProfile()
     {
-        CreateMap<AppplicaitonUser, AuthenticationResponse>()
+        CreateMap<ApplicaitonUser, AuthenticationResponse>()
         .ForMember(dest => dest.UserID, opt => opt.MapFrom(src => src.UserID))
         .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
         .ForMember(dest => dest.PersonName, opt => opt.MapFrom(src => src.PersonName))

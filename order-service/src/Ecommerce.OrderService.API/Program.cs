@@ -1,6 +1,7 @@
 using DotNetEnv;
 using Ecommerce.OrderService.API.Middlewares;
 using Ecommerce.OrderService.BusinessLogicLayer;
+using Ecommerce.OrderService.BusinessLogicLayer.HttpClients;
 using Ecommerce.OrderService.DataLayer;
 using FluentValidation.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,9 @@ builder.Services.AddCors(opt =>
         .AllowAnyMethod()
         .AllowAnyHeader();
     });
+});
+builder.Services.AddHttpClient<UsersMicroserviceClient>(clinet => {
+    clinet.BaseAddress = new Uri($"http://{Environment.GetEnvironmentVariable("USERS_MICROSERVICE_HOST")}:{Environment.GetEnvironmentVariable("USERS_MICROSERVICE_PORT")}");
 });
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

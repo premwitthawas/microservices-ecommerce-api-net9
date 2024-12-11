@@ -20,4 +20,5 @@ public interface IUsersService {
     /// <param name="registerRequest"></param>
     /// <returns></returns>
     Task<AuthenticationResponse?> RegisterAsync(RegisterRequest registerRequest);
+    Task<UserDto?> GetUserByUserID(Guid? userId);
 };
