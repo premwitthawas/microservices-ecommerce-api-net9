@@ -3,14 +3,14 @@ services:
     image: mongo:latest
     container_name: ecommerce-order-db
     networks:
-      - microservice-application-app-networks
+      - order-service-networks
     ports:
       - "4988:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00
     volumes:
-      - ./mongo-init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./order-service/mongo-init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - mongodb:/data/db
   ecommerce-db-auth:
     image: postgres:16.2-alpine3.19
@@ -22,10 +22,10 @@ services:
       POSTGRES_PASSWORD: "52e91258b667c2b01de5"
       POSTGRES_DB: "ecommercedbauth"
     volumes:
-      - ./postgres-init:/docker-entrypoint-initdb.d
+      - ./user-service/postgres-init:/docker-entrypoint-initdb.d
       - pg-database:/var/lib/postgresql/data
     networks:
-      - microservice-application-app-networks
+      - user-service-networks
   ecommerce-db-product:
     image: mysql:latest
     container_name: ecommerce-db-product
@@ -36,34 +36,56 @@ services:
       MYSQL_DATABASE: "ecommercedbproduct"
       MYSQL_PASSWORD: "901a923055b3341e6effff67a8e133391c66aa2921dbedf1b834de0f583ec85b"
     volumes:
-      - ./mysql-init:/docker-entrypoint-initdb.d
+      - ./product-service/mysql-init:/docker-entrypoint-initdb.d
       - mysql-database:/var/lib/mysql
     networks:
-      - microservice-application-app-networks
+      - product-service-networks
   ecommerce-users-api-service:
     image: pzwitthawasdev/ecommerce-users-api-service:latest
     container_name: ecommerce-users-api-service
+    build:
+      context: ./user-service/
+      dockerfile: Dockerfile
     ports:
       - "4000:8080"
     environment:
-      ConnectionStrings__PostgresSQLConnection: "Host=ecommerce-db-auth;Port=5432;Database=ecommercedbauth;Username=ecommercedbauth;Password=52e91258b667c2b01de5"
+      ConnectionStrings__PostgresSQLConnection: "Host={PG_HOST};Port={PG_PORT};Database={PG_DB};Username={PG_USER};Password={PG_PASSWORD}"
+      PG_HOST: "ecommerce-db-auth"
+      PG_PORT: "5432"
+      PG_DB: "ecommercedbauth"
+      PG_USER: "ecommercedbauth"
+      PG_PASSWORD: "52e91258b667c2b01de5"
     depends_on:
       - ecommerce-db-auth
     networks:
+      - user-service-networks
       - microservice-application-app-networks
   ecommerce-product-api-service:
     image: pzwitthawasdev/ecommerce-products-api-service:latest
     container_name: ecommerce-product-api-service
+    build:
+      context: ./product-service/
+      dockerfile: Dockerfile
     ports:
       - "4001:8080"
     environment:
-      ConnectionStrings__MySqlConnection: "server=ecommerce-db-product;port=3306;database=ecommercedbproduct;user=root;password=ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__MySqlConnection: "server={MYSQL_HOST};port={MYSQL_PORT};database={MYSQL_DATABASE};user={MYSQL_USER};password={MYSQL_PASSWORD}"
+      MYSQL_HOST: "ecommerce-db-product"
+      MYSQL_PORT: "3306"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c"
+      MYSQL_DATABASE: "ecommercedbproduct"
     depends_on:
       - ecommerce-db-product
     networks:
+      - product-service-networks
       - microservice-application-app-networks
   ecommerce-orders-api-service:
     image: pzwitthawasdev/ecommerce-orders-api-service:latest
+    build:
+      context: ./order-service/
+      dockerfile: Dockerfile
     container_name: ecommerce-orders-api-service
     ports:
       - "4002:8080"
@@ -72,12 +94,24 @@ services:
         MONGO_PASSWORD: "8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00"
         MONGO_HOST: "ecommerce-order-db"
         MONGO_PORT: "27017"
+        MONGO_DATABASE: "ecommerceorderservicedb"
+        USERS_MICROSERVICE_HOST: "ecommerce-users-api-service"
+        USERS_MICROSERVICE_PORT: "8080"
+        PRODUCTS_MICROSERVICE_HOST: "ecommerce-product-api-service"
+        PRODUCTS_MICROSERVICE_PORT: "8080"
         ConnectionStrings__MongoDbConnection: "mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}"
     depends_on:
       - ecommerce-order-db
     networks:
+      - order-service-networks
       - microservice-application-app-networks
 networks:
+  order-service-networks:
+    driver: bridge
+  product-service-networks:
+    driver: bridge
+  user-service-networks:
+    driver: bridge
   microservice-application-app-networks:
     driver: bridge
 volumes:

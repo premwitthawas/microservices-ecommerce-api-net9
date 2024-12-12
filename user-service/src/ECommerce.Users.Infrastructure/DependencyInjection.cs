@@ -14,6 +14,12 @@ public static class DependencyInjection
     /// <returns></returns>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
+        string? host = Environment.GetEnvironmentVariable("PG_HOST");
+        int? port = int.Parse(Environment.GetEnvironmentVariable("PG_PORT")!);
+        string? username = Environment.GetEnvironmentVariable("PG_USER");
+        string? password = Environment.GetEnvironmentVariable("PG_PASSWORD");
+        string? database = Environment.GetEnvironmentVariable("PG_DB");
+        Console.WriteLine($"Host: {host}, Port: {port}, Username: {username}, Password: {password}, Database: {database}");
         services.AddTransient<IUsersRepository, UsersRepository>();
         services.AddTransient<DapperDbContext>();
         return services;

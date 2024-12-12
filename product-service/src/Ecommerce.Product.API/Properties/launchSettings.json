@@ -5,18 +5,14 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "http://localhost:5086",
+      "applicationUrl": "http://localhost:4001",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "https": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "https://localhost:7115;http://localhost:5086",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MYSQL_HOST": "localhost",
+        "MYSQL_PORT": "4849",
+        "MYSQL_USER": "root",
+        "MYSQL_PASSWORD": "ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c",
+        "MYSQL_DATABASE": "ecommercedbproduct"
       }
     }
   }

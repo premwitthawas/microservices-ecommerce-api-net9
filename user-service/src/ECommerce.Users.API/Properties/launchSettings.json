@@ -1,22 +1,19 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:23611",
-      "sslPort": 44378
-    }
-  },
   "profiles": {
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
       "launchUrl": "swagger",
-      "applicationUrl": "http://localhost:5084",
+      "applicationUrl": "http://localhost:4000",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "PG_HOST": "localhost",
+        "PG_PORT": "4848",
+        "PG_DB": "ecommercedbauth",
+        "PG_USER": "ecommercedbauth",
+        "PG_PASSWORD": "52e91258b667c2b01de5"
       }
     }
   }

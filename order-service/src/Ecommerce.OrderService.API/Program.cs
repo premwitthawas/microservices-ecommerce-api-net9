@@ -29,8 +29,13 @@ builder.Services.AddCors(opt =>
         .AllowAnyHeader();
     });
 });
-builder.Services.AddHttpClient<UsersMicroserviceClient>(clinet => {
+builder.Services.AddHttpClient<UsersMicroserviceClient>(clinet =>
+{
     clinet.BaseAddress = new Uri($"http://{Environment.GetEnvironmentVariable("USERS_MICROSERVICE_HOST")}:{Environment.GetEnvironmentVariable("USERS_MICROSERVICE_PORT")}");
+});
+builder.Services.AddHttpClient<ProductMicroserviceClient>(clinet =>
+{
+    clinet.BaseAddress = new Uri($"http://{Environment.GetEnvironmentVariable("PRODUCTS_MICROSERVICE_HOST")}:{Environment.GetEnvironmentVariable("PRODUCTS_MICROSERVICE_PORT")}");
 });
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

@@ -20,7 +20,7 @@ public static class DependencyInjectionDataLayer
              .Replace("{MONGO_PASSWORD}", mongoPassword)
              .Replace("{MONGO_HOST}", mongoHost)
              .Replace("{MONGO_PORT}", mongoPort);
-        Console.WriteLine($"Generated Connection String: {connectionString}");
+        // Console.WriteLine($"Generated Connection String: {connectionString}");
         services.AddSingleton<IMongoClient>(new MongoClient(connectionString));
         services.AddScoped<IMongoDatabase>(provider =>
         {

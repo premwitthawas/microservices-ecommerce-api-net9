@@ -5,9 +5,11 @@ public record OrderResponse(
     Guid UserID,
     decimal TotalBill,
     DateTime OrderDate,
-    List<OrderItemResponse> OrderItems)
+    List<OrderItemResponse> OrderItems,
+    string? UserPersonName,
+    string? Email)
 {
-    public OrderResponse(): this(default, default, default, default, default!)
+    public OrderResponse() : this(default, default, default, default, default!, default, default)
     {
 
     }
