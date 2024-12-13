@@ -2,8 +2,10 @@ using DotNetEnv;
 using Ecommerce.OrderService.API.Middlewares;
 using Ecommerce.OrderService.BusinessLogicLayer;
 using Ecommerce.OrderService.BusinessLogicLayer.HttpClients;
+using Ecommerce.OrderService.BusinessLogicLayer.Policies;
 using Ecommerce.OrderService.DataLayer;
 using FluentValidation.AspNetCore;
+using Polly;
 var builder = WebApplication.CreateBuilder(args);
 if (builder.Environment.IsDevelopment())
 {
@@ -29,10 +31,23 @@ builder.Services.AddCors(opt =>
         .AllowAnyHeader();
     });
 });
+
+builder.Services.AddTransient<IUserMicroservicePolicies, UserMicroservicePolicies>();
+
 builder.Services.AddHttpClient<UsersMicroserviceClient>(clinet =>
 {
     clinet.BaseAddress = new Uri($"http://{Environment.GetEnvironmentVariable("USERS_MICROSERVICE_HOST")}:{Environment.GetEnvironmentVariable("USERS_MICROSERVICE_PORT")}");
+})
+.AddPolicyHandler((serviceProvider, _) =>
+{
+    return serviceProvider.GetRequiredService<IUserMicroservicePolicies>().GetRetryPolicy();
+})
+.AddPolicyHandler((serviceProvider, _) =>
+{
+    return serviceProvider.GetRequiredService<IUserMicroservicePolicies>().GetCircuitBreakerPolicy();
 });
+// .AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IUserMicroservicePolicies>().GetRetryPolicy())
+// .AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IUserMicroservicePolicies>().GetCircuitBreakerPolicy());
 builder.Services.AddHttpClient<ProductMicroserviceClient>(clinet =>
 {
     clinet.BaseAddress = new Uri($"http://{Environment.GetEnvironmentVariable("PRODUCTS_MICROSERVICE_HOST")}:{Environment.GetEnvironmentVariable("PRODUCTS_MICROSERVICE_PORT")}");
