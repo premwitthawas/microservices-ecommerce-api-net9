@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using Ecommerce.OrderService.BusinessLogicLayer.DTOs;
+using Microsoft.Extensions.Logging;
+using Polly.CircuitBreaker;
 
 namespace Ecommerce.OrderService.BusinessLogicLayer.HttpClients;
 
@@ -8,34 +10,55 @@ namespace Ecommerce.OrderService.BusinessLogicLayer.HttpClients;
 public class UsersMicroserviceClient
 {
     private readonly HttpClient _httpClient;
-    public UsersMicroserviceClient(HttpClient httpClient)
+    private readonly ILogger<UsersMicroserviceClient> _logger;
+    public UsersMicroserviceClient(HttpClient httpClient, ILogger<UsersMicroserviceClient> logger)
     {
         _httpClient = httpClient;
+        _logger = logger;
     }
 
     public async Task<UserDto?> GetUserByUserID(Guid? userID)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync($"/api/users/{userID}");
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            HttpResponseMessage response = await _httpClient.GetAsync($"/api/users/{userID}");
+            if (!response.IsSuccessStatusCode)
             {
-                return null;
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else if (response.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    throw new HttpRequestException("Bad Request", null, HttpStatusCode.BadRequest);
+                }
+                else
+                {
+                    // throw new HttpRequestException("Internal server error", null, response.StatusCode);
+                    return this.GetDefaultUser();
+                }
             }
-            else if (response.StatusCode == HttpStatusCode.BadRequest)
+            UserDto? user = await response.Content.ReadFromJsonAsync<UserDto>();
+            if (user == null)
             {
-                throw new HttpRequestException("Bad Request", null, HttpStatusCode.BadRequest);
+                throw new ArgumentException("Invalid response from user microservice");
             }
-            else
-            {
-                throw new HttpRequestException("http request failed with status code", null, response.StatusCode);
-            }
+            return user;
         }
-        UserDto? user = await response.Content.ReadFromJsonAsync<UserDto>();
-        if (user == null)
+        catch (BrokenCircuitException ex)
         {
-            throw new ArgumentException("Invalid response from user microservice");
+            _logger.LogError(ex, "Circuit breaker is open");
+            return this.GetDefaultUser(); // คืนค่าผู้ใช้เริ่มต้น
         }
-        return user;
+    }
+
+    private UserDto GetDefaultUser()
+    {
+        return new UserDto(
+            UserID: Guid.Empty,
+            Email: "Temporarily Unavailable",
+            PersonName: "Temporarily Unavailable",
+            Gender: "Temporarily Unavailable"
+        );
     }
 }
