@@ -7,7 +7,16 @@
       "launchBrowser": false,
       "applicationUrl": "http://localhost:4002",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MONGO_USER": "root",
+        "MONGO_PASSWORD": "8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00",
+        "MONGO_HOST": "localhost",
+        "MONGO_PORT": "4988",
+        "MONGO_DATABASE": "ecommerceorderservicedb",
+        "USERS_MICROSERVICE_HOST": "localhost",
+        "USERS_MICROSERVICE_PORT": "4000",
+        "PRODUCTS_MICROSERVICE_HOST": "localhost",
+        "PRODUCTS_MICROSERVICE_PORT": "4001"
       }
     }
   }

@@ -1,20 +1,10 @@
-using DotNetEnv;
 using Ecommerce.OrderService.API.Middlewares;
 using Ecommerce.OrderService.BusinessLogicLayer;
 using Ecommerce.OrderService.BusinessLogicLayer.HttpClients;
 using Ecommerce.OrderService.BusinessLogicLayer.Policies;
 using Ecommerce.OrderService.DataLayer;
 using FluentValidation.AspNetCore;
-using Polly;
 var builder = WebApplication.CreateBuilder(args);
-if (builder.Environment.IsDevelopment())
-{
-    Env.Load();
-}
-// Console.WriteLine($"MONGO_USER: {Environment.GetEnvironmentVariable("MONGO_USER")}");
-// Console.WriteLine($"MONGO_PASSWORD: {Environment.GetEnvironmentVariable("MONGO_PASSWORD")}");
-// Console.WriteLine($"MONGO_HOST: {Environment.GetEnvironmentVariable("MONGO_HOST")}");
-// Console.WriteLine($"MONGO_PORT: {Environment.GetEnvironmentVariable("MONGO_PORT")}");
 builder.Services.AddDataLayer(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddBusinessLogicLayer();
@@ -31,27 +21,26 @@ builder.Services.AddCors(opt =>
         .AllowAnyHeader();
     });
 });
-
 builder.Services.AddTransient<IUserMicroservicePolicies, UserMicroservicePolicies>();
-
+builder.Services.AddTransient<IProductMicroservicePolicies, ProductMicroservicePolicies>();
+builder.Services.AddTransient<IPollyPolicies, PollyPolicies>();
+#pragma warning disable ASP0000 // Do not call 'IServiceCollection.BuildServiceProvider' in 'ConfigureServices'
 builder.Services.AddHttpClient<UsersMicroserviceClient>(clinet =>
 {
     clinet.BaseAddress = new Uri($"http://{Environment.GetEnvironmentVariable("USERS_MICROSERVICE_HOST")}:{Environment.GetEnvironmentVariable("USERS_MICROSERVICE_PORT")}");
 })
-.AddPolicyHandler((serviceProvider, _) =>
-{
-    return serviceProvider.GetRequiredService<IUserMicroservicePolicies>().GetRetryPolicy();
-})
-.AddPolicyHandler((serviceProvider, _) =>
-{
-    return serviceProvider.GetRequiredService<IUserMicroservicePolicies>().GetCircuitBreakerPolicy();
-});
+.AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IUserMicroservicePolicies>().GetCombinedPolicy());
 // .AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IUserMicroservicePolicies>().GetRetryPolicy())
-// .AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IUserMicroservicePolicies>().GetCircuitBreakerPolicy());
+// .AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IUserMicroservicePolicies>().GetCircuitBreakerPolicy())
+// .AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IUserMicroservicePolicies>().GetTimeoutPolicy());
+#pragma warning disable ASP0000 // Do not call 'IServiceCollection.BuildServiceProvider' in 'ConfigureServices'
 builder.Services.AddHttpClient<ProductMicroserviceClient>(clinet =>
 {
     clinet.BaseAddress = new Uri($"http://{Environment.GetEnvironmentVariable("PRODUCTS_MICROSERVICE_HOST")}:{Environment.GetEnvironmentVariable("PRODUCTS_MICROSERVICE_PORT")}");
-});
+})
+.AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IProductMicroservicePolicies>().GetFallBackPolicy())
+.AddPolicyHandler(builder.Services.BuildServiceProvider().GetRequiredService<IProductMicroservicePolicies>().GetBulkHeadIsolationPolicy());
+#pragma warning restore ASP0000 // Do not call 'IServiceCollection.BuildServiceProvider' in 'ConfigureServices'
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {

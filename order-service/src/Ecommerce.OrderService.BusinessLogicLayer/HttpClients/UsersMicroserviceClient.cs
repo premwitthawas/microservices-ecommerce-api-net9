@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using Ecommerce.OrderService.BusinessLogicLayer.DTOs;
+using Ecommerce.OrderService.BusinessLogicLayer.Policies;
 using Microsoft.Extensions.Logging;
 using Polly.CircuitBreaker;
+using Polly.Timeout;
 
 namespace Ecommerce.OrderService.BusinessLogicLayer.HttpClients;
 
@@ -11,17 +13,19 @@ public class UsersMicroserviceClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<UsersMicroserviceClient> _logger;
-    public UsersMicroserviceClient(HttpClient httpClient, ILogger<UsersMicroserviceClient> logger)
+    private readonly IUserMicroservicePolicies _userMicroservicePolicies;
+    public UsersMicroserviceClient(HttpClient httpClient, ILogger<UsersMicroserviceClient> logger, IUserMicroservicePolicies userMicroservicePolicies)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _userMicroservicePolicies = userMicroservicePolicies;
     }
 
     public async Task<UserDto?> GetUserByUserID(Guid? userID)
     {
         try
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"/api/users/{userID}");
+            HttpResponseMessage response = await _userMicroservicePolicies.GetCombinedPolicy().ExecuteAsync((ct) => _httpClient.GetAsync($"/api/users/{userID}", ct), CancellationToken.None);
             if (!response.IsSuccessStatusCode)
             {
                 if (response.StatusCode == HttpStatusCode.NotFound)
@@ -44,6 +48,11 @@ public class UsersMicroserviceClient
                 throw new ArgumentException("Invalid response from user microservice");
             }
             return user;
+        }
+        catch (TimeoutRejectedException ex)
+        {
+            _logger.LogError(ex, "Timeout");
+            return this.GetDefaultUser(); // คืนค่าผู้ใช้เริ่มต้น
         }
         catch (BrokenCircuitException ex)
         {
