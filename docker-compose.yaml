@@ -4,8 +4,8 @@ services:
     container_name: ecommerce-order-db
     networks:
       - order-service-networks
-    ports:
-      - "4988:27017"
+    expose:
+      - "27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00
@@ -15,8 +15,8 @@ services:
   ecommerce-db-auth:
     image: postgres:16.2-alpine3.19
     container_name: ecommerce-db-auth
-    ports:
-      - "4848:5432"
+    expose:
+      - "5432"
     environment:
       POSTGRES_USER: "ecommercedbauth"
       POSTGRES_PASSWORD: "52e91258b667c2b01de5"
@@ -29,8 +29,8 @@ services:
   ecommerce-db-product:
     image: mysql:latest
     container_name: ecommerce-db-product
-    ports:
-      - "4849:3306"
+    expose:
+      - "3306"
     environment:
       MYSQL_ROOT_PASSWORD: "ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c"
       MYSQL_DATABASE: "ecommercedbproduct"
@@ -46,8 +46,8 @@ services:
     build:
       context: ./user-service/
       dockerfile: Dockerfile
-    ports:
-      - "4000:8080"
+    expose:
+      - "8080"
     environment:
       ConnectionStrings__PostgresSQLConnection: "Host={PG_HOST};Port={PG_PORT};Database={PG_DB};Username={PG_USER};Password={PG_PASSWORD}"
       PG_HOST: "ecommerce-db-auth"
@@ -66,8 +66,8 @@ services:
     build:
       context: ./product-service/
       dockerfile: Dockerfile
-    ports:
-      - "4001:8080"
+    expose:
+      - "8080"
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       ConnectionStrings__MySqlConnection: "server={MYSQL_HOST};port={MYSQL_PORT};database={MYSQL_DATABASE};user={MYSQL_USER};password={MYSQL_PASSWORD}"
@@ -87,24 +87,48 @@ services:
       context: ./order-service/
       dockerfile: Dockerfile
     container_name: ecommerce-orders-api-service
-    ports:
-      - "4002:8080"
+    expose:
+      - "8080"
     environment:
         MONGO_USER: "root"
         MONGO_PASSWORD: "8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00"
         MONGO_HOST: "ecommerce-order-db"
         MONGO_PORT: "27017"
         MONGO_DATABASE: "ecommerceorderservicedb"
-        USERS_MICROSERVICE_HOST: "ecommerce-users-api-service"
+        USERS_MICROSERVICE_HOST: "apigateway"
         USERS_MICROSERVICE_PORT: "8080"
-        PRODUCTS_MICROSERVICE_HOST: "ecommerce-product-api-service"
+        PRODUCTS_MICROSERVICE_HOST: "apigateway"
         PRODUCTS_MICROSERVICE_PORT: "8080"
+        REDIS_HOST: redis
+        REDIS_PORT: 6379
         ConnectionStrings__MongoDbConnection: "mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}"
     depends_on:
       - ecommerce-order-db
+      - redis
     networks:
       - order-service-networks
       - microservice-application-app-networks
+  redis:
+    image: redis:latest
+    container_name: redis
+    expose:
+      - "6379"
+    networks:
+      - order-service-networks
+    volumes:
+      - ./redis_data:/data
+  apigateway:
+    image: apigetway:latest
+    container_name: apigateway
+    build:
+      context: ./api-get-way/
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    networks:
+      - microservice-application-app-networks
+    depends_on:
+      - ecommerce-orders-api-service
 networks:
   order-service-networks:
     driver: bridge

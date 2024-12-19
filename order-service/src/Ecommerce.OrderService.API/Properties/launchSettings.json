@@ -16,7 +16,9 @@
         "USERS_MICROSERVICE_HOST": "localhost",
         "USERS_MICROSERVICE_PORT": "4000",
         "PRODUCTS_MICROSERVICE_HOST": "localhost",
-        "PRODUCTS_MICROSERVICE_PORT": "4001"
+        "PRODUCTS_MICROSERVICE_PORT": "4001",
+        "REDIS_HOST": "localhost",
+        "REDIS_PORT": "6379",
       }
     }
   }

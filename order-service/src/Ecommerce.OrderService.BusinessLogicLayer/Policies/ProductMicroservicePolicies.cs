@@ -39,7 +39,7 @@ public class ProductMicroservicePolicies : IProductMicroservicePolicies
             Category: "Temporarily Unavailable",
             UnitPrice: 0,
             QuantityInStock: 0);
-            return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
             {
                 Content = new StringContent(JsonSerializer.Serialize(productDto), Encoding.UTF8, "application/json")
             });

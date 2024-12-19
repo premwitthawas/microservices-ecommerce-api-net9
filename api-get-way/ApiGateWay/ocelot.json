@@ -1,0 +1,198 @@
+{
+  "Routes": [
+    {
+      "UpstreamPathTemplate": "/api/Orders",
+      "DownstreamPathTemplate": "/api/Orders",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-orders-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get", "Post", "Options"],
+      "FileCacheOptions": {
+        "TtlSeconds": 30,
+        "Region": "orders",
+        "Header": "OC-Caching-Control",
+        "EnableContentHashing": false
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/api/Orders/{orderId}",
+      "DownstreamPathTemplate": "/api/Orders/{orderId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-orders-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Delete", "Put", "Options"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Orders/search/get-by-order-id/{orderId}",
+      "DownstreamPathTemplate": "/api/Orders/search/get-by-order-id/{orderId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-orders-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Orders/search/get-by-products-id/{productId}",
+      "DownstreamPathTemplate": "/api/Orders/search/get-by-products-id/{productId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-orders-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Orders/search/get-by-product-id/{productId}",
+      "DownstreamPathTemplate": "/api/Orders/search/get-by-product-id/{productId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-orders-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Orders/search/get-by-date/{date}",
+      "DownstreamPathTemplate": "/api/Orders/search/get-by-date/{date}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-orders-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Orders/search/get-by-user-id/{userId}",
+      "DownstreamPathTemplate": "/api/Orders/search/get-by-user-id/{userId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-orders-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Products",
+      "DownstreamPathTemplate": "/api/Products",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-product-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get", "Put", "Post", "Options"],
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 100000,
+        "TimeoutValue": 5000
+      },
+      "RetryOptions": {
+        "RetryCount": 3,
+        "RetryOnServerError": true
+      },
+      "RateLimitOptions": {
+        "Limit": 3,
+        "EnableRateLimiting": true,
+        "Period": "60s",
+        "HttpStatusCode": 429,
+        "QuotaExceededMessage": "Too Many Requests",
+        "PeriodTimespan": 30
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/api/Products/search/{searchText}",
+      "DownstreamPathTemplate": "/api/Products/search/{searchText}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-product-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Products/{productId}",
+      "DownstreamPathTemplate": "/api/Products/{productId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-product-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Delete"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Products/search/{productId}",
+      "DownstreamPathTemplate": "/api/Products/search/{productId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-product-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Users/{userId}",
+      "DownstreamPathTemplate": "/api/Users/{userId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-users-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Get"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Auth/register",
+      "DownstreamPathTemplate": "/api/Auth/register",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-users-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Post", "Options"]
+    },
+    {
+      "UpstreamPathTemplate": "/api/Auth/login",
+      "DownstreamPathTemplate": "/api/Auth/login",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ecommerce-users-api-service",
+          "Port": 8080
+        }
+      ],
+      "UpstreamHttpMethod": ["Post", "Options"]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://apigateway:8080"
+  }
+}
