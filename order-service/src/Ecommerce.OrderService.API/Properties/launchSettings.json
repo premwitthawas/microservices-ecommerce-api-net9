@@ -19,6 +19,13 @@
         "PRODUCTS_MICROSERVICE_PORT": "4001",
         "REDIS_HOST": "localhost",
         "REDIS_PORT": "6379",
+        "RABBITMQ_HOST": "localhost",
+        "RABBITMQ_PORT": "5672",
+        "RABBITMQ_USER": "guest",
+        "RABBITMQ_PASSWORD": "8bf0f3bde1588cd2fca6a7c35e932173",
+        "RABBITMQ_EXCHANGE": "products.exchange",
+        "RABBITMQ_CONNSUMMER_PRODUCTNAME_KEY": "product.name.update",
+        "RABBITMQ_CONNSUMMER_PRODUCTNAME_QUEUE": "orders.product.update.name.queue",
       }
     }
   }
