@@ -12,7 +12,12 @@
         "MYSQL_PORT": "4849",
         "MYSQL_USER": "root",
         "MYSQL_PASSWORD": "ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c",
-        "MYSQL_DATABASE": "ecommercedbproduct"
+        "MYSQL_DATABASE": "ecommercedbproduct",
+        "RABBITMQ_HOST": "localhost",
+        "RABBITMQ_PORT": "5672",
+        "RABBITMQ_USER": "guest",
+        "RABBITMQ_PASSWORD": "8bf0f3bde1588cd2fca6a7c35e932173",
+        "RABBITMQ_EXCHANGE": "products.exchange"
       }
     }
   }

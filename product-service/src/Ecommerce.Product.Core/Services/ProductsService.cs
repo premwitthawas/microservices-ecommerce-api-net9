@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using Ecommerce.Product.Core.DTOs;
+using Ecommerce.Product.Core.RabbitMQ;
 using Ecommerce.Product.Core.ServiceContacts;
 using Ecommerce.Product.Infrastructure.Entities;
 using Ecommerce.Product.Infrastructure.RepositoryContacts;
@@ -17,13 +18,15 @@ public class ProductsService : IProductsService
     private readonly IMapper _mapper;
     private readonly IProductsRepository _productsRepository;
     private readonly ILogger<ProductsService> _logger;
-    public ProductsService(IMapper mapper, IProductsRepository productsRepository, IValidator<CreateProductRequest> createProductRequestValidator, IValidator<UpdateProductRequest> updateProductRequestValidator, ILogger<ProductsService> logger)
+    private readonly IRabbitMQPublisher _rabbitMQPublisher;
+    public ProductsService(IMapper mapper, IProductsRepository productsRepository, IValidator<CreateProductRequest> createProductRequestValidator, IValidator<UpdateProductRequest> updateProductRequestValidator, ILogger<ProductsService> logger, IRabbitMQPublisher rabbitMQPublisher)
     {
         _mapper = mapper;
         _productsRepository = productsRepository;
         _createProductRequestValidator = createProductRequestValidator;
         _updateProductRequestValidator = updateProductRequestValidator;
         _logger = logger;
+        _rabbitMQPublisher = rabbitMQPublisher;
     }
     public async Task<ProductsResponse?> AddProductAsync(CreateProductRequest createProductRequest)
     {
@@ -96,12 +99,22 @@ public class ProductsService : IProductsService
             throw new ArgumentException(errors);
         }
         Products? existingProduct = await _productsRepository.GetProductByConditionAsync(x => x.ProductID == updateProductRequest.ProductID);
-        
+
         if (existingProduct == null)
         {
             throw new ArgumentException("Product not found");
         }
+
         Products products = _mapper.Map<Products>(updateProductRequest);
+        bool isProductNameChanged = existingProduct.ProductName != products.ProductName;
+
+        // Publish message to RabbitMQ if product name is changed
+        if (isProductNameChanged)
+        {
+            string routeKey = "product.update.name";
+            var message = new ProductNameUpdateMessage(products.ProductID, products.ProductName);
+            _rabbitMQPublisher.Publish(routeKey, message);
+        }
         _logger.LogInformation($"Product found {products.ProductName}");
         Products? updatedProduct = await _productsRepository.UpdateProductAsync(products);
         if (updatedProduct == null)

@@ -4,8 +4,8 @@ services:
     container_name: ecommerce-order-db
     networks:
       - order-service-networks
-    expose:
-      - "27017"
+    ports:
+      - "4988:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00
@@ -15,8 +15,8 @@ services:
   ecommerce-db-auth:
     image: postgres:16.2-alpine3.19
     container_name: ecommerce-db-auth
-    expose:
-      - "5432"
+    ports:
+      - "4848:5432"
     environment:
       POSTGRES_USER: "ecommercedbauth"
       POSTGRES_PASSWORD: "52e91258b667c2b01de5"
@@ -29,8 +29,8 @@ services:
   ecommerce-db-product:
     image: mysql:latest
     container_name: ecommerce-db-product
-    expose:
-      - "3306"
+    ports:
+      - "4849:3306"
     environment:
       MYSQL_ROOT_PASSWORD: "ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c"
       MYSQL_DATABASE: "ecommercedbproduct"
@@ -46,8 +46,8 @@ services:
     build:
       context: ./user-service/
       dockerfile: Dockerfile
-    expose:
-      - "8080"
+    ports:
+      - "4000:8080"
     environment:
       ConnectionStrings__PostgresSQLConnection: "Host={PG_HOST};Port={PG_PORT};Database={PG_DB};Username={PG_USER};Password={PG_PASSWORD}"
       PG_HOST: "ecommerce-db-auth"
@@ -66,8 +66,8 @@ services:
     build:
       context: ./product-service/
       dockerfile: Dockerfile
-    expose:
-      - "8080"
+    ports:
+      - "4001:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       ConnectionStrings__MySqlConnection: "server={MYSQL_HOST};port={MYSQL_PORT};database={MYSQL_DATABASE};user={MYSQL_USER};password={MYSQL_PASSWORD}"
@@ -76,8 +76,14 @@ services:
       MYSQL_USER: "root"
       MYSQL_PASSWORD: "ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c"
       MYSQL_DATABASE: "ecommercedbproduct"
+      RABBITMQ_HOST: "rabbitMq"
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: "guest"
+      RABBITMQ_PASSWORD: "8bf0f3bde1588cd2fca6a7c35e932173"
+      RABBITMQ_EXCHANGE: "products.exchange"
     depends_on:
       - ecommerce-db-product
+      - rabbitMq
     networks:
       - product-service-networks
       - microservice-application-app-networks
@@ -87,8 +93,8 @@ services:
       context: ./order-service/
       dockerfile: Dockerfile
     container_name: ecommerce-orders-api-service
-    expose:
-      - "8080"
+    ports:
+      - "4002:8080"
     environment:
         MONGO_USER: "root"
         MONGO_PASSWORD: "8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00"
@@ -111,8 +117,8 @@ services:
   redis:
     image: redis:latest
     container_name: redis
-    expose:
-      - "6379"
+    ports:
+      - "6379:6379"
     networks:
       - order-service-networks
     volumes:
@@ -129,6 +135,17 @@ services:
       - microservice-application-app-networks
     depends_on:
       - ecommerce-orders-api-service
+  rabbitMq:
+    image: rabbitmq:4.0.5-management-alpine
+    container_name: rabbitMq
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest" 
+      RABBITMQ_DEFAULT_PASS: "8bf0f3bde1588cd2fca6a7c35e932173"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - microservice-application-app-networks
 networks:
   order-service-networks:
     driver: bridge

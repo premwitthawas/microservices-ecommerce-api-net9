@@ -1,4 +1,5 @@
 ﻿using Ecommerce.Product.Core.Mappers;
+using Ecommerce.Product.Core.RabbitMQ;
 using Ecommerce.Product.Core.ServiceContacts;
 using Ecommerce.Product.Core.Services;
 using Ecommerce.Product.Core.Validators;
@@ -15,6 +16,7 @@ public static class DependencyInjection
         services.AddAutoMapper(typeof(MappingCreateProductRequestProfile).Assembly);
         services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
         services.AddScoped<IProductsService, ProductsService>();
+        services.AddTransient<IRabbitMQPublisher, RabbitMQPublisher>();
         return services;
     }
 
