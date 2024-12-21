@@ -6,7 +6,7 @@ public record UpdateProductRequest(
     string ProductName,
     CategoryOptions Category,
     double? UnitPrice,
-    int? QuantityInStock
+    int? Quantity
 )
 {
     public UpdateProductRequest() : this(default, default!, default, default, default)

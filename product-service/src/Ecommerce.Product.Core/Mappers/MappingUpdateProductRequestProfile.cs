@@ -14,6 +14,6 @@ public class MappingUpdateProductRequestProfile : Profile
         .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.ProductName))
         .ForMember(d => d.Category, opt => opt.MapFrom(s => s.Category))
         .ForMember(d => d.UnitPrice, opt => opt.MapFrom(s => s.UnitPrice))
-        .ForMember(d => d.QuantityInStock, opt => opt.MapFrom(s => s.QuantityInStock));
+        .ForMember(d => d.QuantityInStock, opt => opt.MapFrom(s => s.Quantity));
     }
 };

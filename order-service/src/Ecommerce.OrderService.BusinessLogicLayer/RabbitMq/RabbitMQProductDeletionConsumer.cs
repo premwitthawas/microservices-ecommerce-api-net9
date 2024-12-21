@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using Ecommerce.OrderService.BusinessLogicLayer.DTOs;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -10,15 +9,15 @@ using RabbitMQ.Client.Events;
 namespace Ecommerce.OrderService.BusinessLogicLayer.RabbitMq;
 
 
-public class RabbitMQProductNameUpdateConsumer : IRabbitMQProductNameUpdateConsumer, IDisposable
+public class RabbitMQProductDeletionConsumer : IRabbitMQProductDeletionConsumer, IDisposable
 {
 
     private readonly IConfiguration _configuration;
     private readonly IModel _channel;
     private readonly IConnection _connection;
-    private readonly ILogger<RabbitMQProductNameUpdateConsumer> _logger;
+    private readonly ILogger<RabbitMQProductDeletionConsumer> _logger;
     private readonly IDistributedCache _distributedCache;
-    public RabbitMQProductNameUpdateConsumer(IConfiguration configuration, ILogger<RabbitMQProductNameUpdateConsumer> logger, IDistributedCache distributedCache)
+    public RabbitMQProductDeletionConsumer(IConfiguration configuration, ILogger<RabbitMQProductDeletionConsumer> logger, IDistributedCache distributedCache)
     {
         _configuration = configuration;
         _logger = logger;
@@ -39,13 +38,13 @@ public class RabbitMQProductNameUpdateConsumer : IRabbitMQProductNameUpdateConsu
     }
     public void Consume()
     {
-        _logger.LogInformation("Product Name Update Consumer listening for messages");
-        string routeKey = Environment.GetEnvironmentVariable("RABBITMQ_CONNSUMMER_PRODUCTNAME_KEY")!;
-        string queueName = Environment.GetEnvironmentVariable("RABBITMQ_CONNSUMMER_PRODUCTNAME_QUEUE")!;
+        _logger.LogInformation("Product Deletion Consumer listening for messages");
+        string routeKey = Environment.GetEnvironmentVariable("RABBITMQ_CONNSUMMER_DELPRODUCT_KEY")!;
+        string queueName = Environment.GetEnvironmentVariable("RABBITMQ_CONNSUMMER_DELPRODUCT_QUEUE")!;
         string exchangeName = Environment.GetEnvironmentVariable("RABBITMQ_EXCHANGE")!;
         // Declare Exchange
-        _channel.ExchangeDeclare(exchange: exchangeName, type:
-        ExchangeType.Headers, durable: true);
+        _channel.ExchangeDeclare(exchange: exchangeName,
+        type: ExchangeType.Headers, durable: true);
         // Declare Queue
         _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
         // Bind Queue With Exchange
@@ -58,7 +57,7 @@ public class RabbitMQProductNameUpdateConsumer : IRabbitMQProductNameUpdateConsu
                     "event",routeKey
                 },
                 {
-                    "field","name"
+                    "field","all"
                 },
                 {
                     "rowCount",1
@@ -71,26 +70,25 @@ public class RabbitMQProductNameUpdateConsumer : IRabbitMQProductNameUpdateConsu
         {
             byte[] body = args.Body.ToArray();
             string msg = Encoding.UTF8.GetString(body);
-            _logger.LogInformation($"Product Name Updated {msg}");
+            // _logger.LogInformation($"Product Deletion Consumer Received : {msg}");
             if (msg != null)
             {
-                ProductDto? productDto = JsonSerializer.Deserialize<ProductDto>(msg);
-                if (productDto != null)
+                ProductDeletionMessage? productDeletionMessage = JsonSerializer.Deserialize<ProductDeletionMessage>(msg);
+                if (productDeletionMessage != null)
                 {
-                    // _logger.LogInformation($"Product Name Updated ID {productDto.ProductID} : {productDto.ProductName}");
-                    await UpdateProductNameOnBackGroupd(productDto);
+                    //_logger.LogInformation($"Product Deletion Consumer Received : {productDeletionMessage.ProductID}");
+                   await this.DeleteProductNameOnBackGroupd(productDeletionMessage.ProductID);
                 }
             }
         };
         _channel.BasicConsume(queue: queueName, consumer: consumer, autoAck: true);
     }
 
-    private async Task UpdateProductNameOnBackGroupd(ProductDto productDto)
+    private async Task DeleteProductNameOnBackGroupd(Guid productID)
     {
-        _logger.LogInformation($"Product Name Updated ID {productDto.ProductID} : {productDto.ProductName}");
-        string productJson = JsonSerializer.Serialize(productDto);
-        string cachekey = $"product:{productDto.ProductID}";
-        await _distributedCache.SetStringAsync(cachekey, productJson);
+        _logger.LogInformation($"Product DeleteById : {productID}");
+        string cachekey = $"product:{productID}";
+        await _distributedCache.RemoveAsync(cachekey);
     }
 
     public void Dispose()

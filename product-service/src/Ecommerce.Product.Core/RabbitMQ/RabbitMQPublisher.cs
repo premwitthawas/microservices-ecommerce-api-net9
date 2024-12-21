@@ -36,16 +36,20 @@ public class RabbitMQPublisher : IRabbitMQPublisher, IDisposable
         _connection.Dispose();
     }
 
-    public void Publish<T>(string routeKey, T message)
+    public void Publish<T>(Dictionary<string, object> header, T message)
     {
-        _logger.LogInformation("Publishing message to RabbitMQ");
+        //_logger.LogInformation("Publishing message to RabbitMQ");
         string messageJson = JsonSerializer.Serialize(message);
         byte[] body = Encoding.UTF8.GetBytes(messageJson);
         string exchangeName = Environment.GetEnvironmentVariable("RABBITMQ_EXCHANGE")!;
         // Declare exchange
-        _channel.ExchangeDeclare(exchange: exchangeName,type: ExchangeType.Direct,durable: true);
+        _channel.ExchangeDeclare(exchange: exchangeName,
+        type: ExchangeType.Headers, durable: true);
         // Publish message
-        _channel.BasicPublish(exchange: exchangeName, routingKey: routeKey, basicProperties: null, body: body);
-        _logger.LogInformation(messageJson);
+        var basicProps = _channel.CreateBasicProperties();
+        basicProps.Headers = header;
+        _channel.BasicPublish(exchange: exchangeName,
+        routingKey: string.Empty, basicProperties: basicProps, body: body);
+        // _logger.LogInformation(messageJson);
     }
 }

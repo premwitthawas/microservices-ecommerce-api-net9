@@ -1,6 +1,6 @@
 namespace Ecommerce.OrderService.BusinessLogicLayer.RabbitMq;
 
-public interface IRabbitMQProductNameUpdateConsumer
+public interface IRabbitMQProductDeletionConsumer
 {
     void Consume();
     void Dispose();

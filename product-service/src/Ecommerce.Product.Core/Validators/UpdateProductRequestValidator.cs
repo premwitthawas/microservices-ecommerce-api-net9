@@ -12,6 +12,6 @@ public class UpdateProductRequestValidator : AbstractValidator<UpdateProductRequ
         RuleFor(x => x.ProductName).NotEmpty().WithMessage("Product name is required");
         RuleFor(x => x.Category).IsInEnum().WithMessage("Product Category is required");
         RuleFor(x => x.UnitPrice).InclusiveBetween(0, double.MaxValue).WithMessage($"Unit price is Value between 0 and {double.MaxValue}");
-        RuleFor(x => x.QuantityInStock).InclusiveBetween(0, int.MaxValue).WithMessage($"Quantity in stock is Value between 0 and {int.MaxValue}");
+        RuleFor(x => x.Quantity).InclusiveBetween(0, int.MaxValue).WithMessage($"Quantity in stock is Value between 0 and {int.MaxValue}");
     }
 };

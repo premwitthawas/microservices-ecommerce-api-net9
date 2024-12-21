@@ -8,6 +8,7 @@ using Ecommerce.Product.Infrastructure.RepositoryContacts;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 
 namespace Ecommerce.Product.Core.Services;
 
@@ -57,7 +58,28 @@ public class ProductsService : IProductsService
         {
             return false;
         }
+        ProductDeletionMessage msg = new(existingProduct.ProductID, existingProduct.ProductName);
+        _logger.LogInformation($"Product found {existingProduct.ProductID}");
+        // bool productIsDeleted = true;
         bool productIsDeleted = await _productsRepository.DeleteProductAsync(productId);
+        if (productIsDeleted)
+        {
+            string routeKey = "product.delete";
+            var header = new Dictionary<string, object>
+            {
+                 {
+                    "x-match","all"
+                },
+                {
+                    "event",routeKey
+                },
+                {
+                    "rowCount",1
+                }
+            };
+            _logger.LogInformation($"Msg {msg}");
+            _rabbitMQPublisher.Publish(header, msg);
+        }
         return productIsDeleted;
     }
 
@@ -111,9 +133,25 @@ public class ProductsService : IProductsService
         // Publish message to RabbitMQ if product name is changed
         if (isProductNameChanged)
         {
+            // _logger.LogInformation(products.ProductID.ToString());
             string routeKey = "product.update.name";
-            var message = new ProductNameUpdateMessage(products.ProductID, products.ProductName);
-            _rabbitMQPublisher.Publish(routeKey, message);
+            // var message = new ProductNameUpdateMessage(products.ProductID, products.ProductName);
+            var header = new Dictionary<string, object>
+            {
+                {
+                    "x-match","any"
+                },
+                {
+                    "event",routeKey
+                },
+                {
+                    "field","name"
+                },
+                {
+                    "rowCount",1
+                }
+            };
+            _rabbitMQPublisher.Publish(header, products);
         }
         _logger.LogInformation($"Product found {products.ProductName}");
         Products? updatedProduct = await _productsRepository.UpdateProductAsync(products);
