@@ -1,7 +1,10 @@
 services:
   ecommerce-order-db:
-    image: mongo:latest
+    image: ecommerce-order-db:latest
     container_name: ecommerce-order-db
+    build:
+      context: /mongo
+      dockerfile: Dockerfile
     networks:
       - order-service-networks
     ports:
@@ -9,35 +12,32 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00
-    volumes:
-      - ./order-service/mongo-init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-      - mongodb:/data/db
   ecommerce-db-auth:
-    image: postgres:16.2-alpine3.19
+    image: ecommerce-db-auth:latest
     container_name: ecommerce-db-auth
+    build:
+      context: /postgres
+      dockerfile: Dockerfile
     ports:
       - "4848:5432"
     environment:
       POSTGRES_USER: "ecommercedbauth"
       POSTGRES_PASSWORD: "52e91258b667c2b01de5"
       POSTGRES_DB: "ecommercedbauth"
-    volumes:
-      - ./user-service/postgres-init:/docker-entrypoint-initdb.d
-      - pg-database:/var/lib/postgresql/data
     networks:
       - user-service-networks
   ecommerce-db-product:
-    image: mysql:latest
+    image: ecommerce-db-product:latest
     container_name: ecommerce-db-product
+    build:
+      context: /mysql
+      dockerfile: Dockerfile
     ports:
       - "4849:3306"
     environment:
       MYSQL_ROOT_PASSWORD: "ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c"
       MYSQL_DATABASE: "ecommercedbproduct"
       MYSQL_PASSWORD: "901a923055b3341e6effff67a8e133391c66aa2921dbedf1b834de0f583ec85b"
-    volumes:
-      - ./product-service/mysql-init:/docker-entrypoint-initdb.d
-      - mysql-database:/var/lib/mysql
     networks:
       - product-service-networks
   ecommerce-users-api-service:
@@ -166,10 +166,3 @@ networks:
     driver: bridge
   microservice-application-app-networks:
     driver: bridge
-volumes:
-  pg-database:
-    driver: local
-  mysql-database:
-    driver: local
-  mongodb:
-    driver: local

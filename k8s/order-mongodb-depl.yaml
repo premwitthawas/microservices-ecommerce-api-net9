@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-mongodb-depl
+  namespace: ecommerce-namespace
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: ecomwwpzpremregistry.azurecr.io/ecommerce-order-db:latest
+        env:
+          - name: MONGO_INITDB_ROOT_USERNAME
+            value: root
+          - name: MONGO_INITDB_ROOT_PASSWORD
+            value: 8682a9191fb618ce452cacdd0a1246370cf9ce7a0b4515a8f2a094e2ed839d00
+        ports:
+        - containerPort: 27017

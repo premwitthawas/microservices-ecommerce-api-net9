@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-microservice-api-depl
+  namespace: ecommerce-namespace
+  labels:
+    app: product-microservice-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-microservice-api
+  template:
+    metadata:
+      labels:
+        app: product-microservice-api
+    spec:
+      containers:
+        - name: product-microservice-api
+          image: ecomwwpzpremregistry.azurecr.io/ecommerce-products-api-service:latest
+          env:
+            - name: ASPNET_CORE_ENVIRONMENT
+              value: Development
+            - name: ConnectionStrings__MySqlConnection
+              value: server={MYSQL_HOST};port={MYSQL_PORT};database={MYSQL_DATABASE};user={MYSQL_USER};password={MYSQL_PASSWORD}
+            - name: MYSQL_HOST
+              value: mysql
+            - name: MYSQL_USER
+              value: root
+            - name: MYSQL_PASSWORD
+              value: ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c
+            - name: MYSQL_DATABASE
+              value: ecommercedbproduct
+            - name: RABBITMQ_HOST
+              value: rabbitmq
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USER
+              value: guest
+            - name: RABBITMQ_PASSWORD
+              value: 8bf0f3bde1588cd2fca6a7c35e932173
+            - name: RABBITMQ_EXCHANGE
+              value: products.exchange
+          ports:
+            - containerPort: 8080

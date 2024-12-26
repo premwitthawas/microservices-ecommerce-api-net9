@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-pg-depl
+  namespace: ecommerce-namespace
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: ecomwwpzpremregistry.azurecr.io/ecommerce-db-auth:latest
+        env:
+          - name: POSTGRES_USER
+            value: ecommercedbauth
+          - name: POSTGRES_PASSWORD
+            value: 52e91258b667c2b01de5
+          - name: POSTGRES_DB
+            value: ecommercedbauth
+        ports:
+        - containerPort: 5432

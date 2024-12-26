@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-microservice-api-depl
+  namespace: ecommerce-namespace
+  labels:
+    app: user-microservice-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-microservice-api
+  template:
+    metadata:
+      labels:
+        app: user-microservice-api
+    spec:
+      containers:
+        - name: user-microservice-api
+          image: ecomwwpzpremregistry.azurecr.io/ecommerce-users-api-service:latest
+          env:
+            - name: ASPNET_CORE_ENVIRONMENT
+              value: Development
+            - name: ConnectionStrings__PostgresSQLConnection
+              value: Host={PG_HOST};Port={PG_PORT};Database={PG_DB};Username={PG_USER};Password={PG_PASSWORD}
+            - name: PG_HOST
+              value: postgres
+            - name: PG_DB
+              value: ecommercedbauth
+            - name: PG_USER
+              value: ecommercedbauth
+            - name: PG_PASSWORD
+              value: 52e91258b667c2b01de5
+            - name: PG_PORT
+              value: "5432"
+          ports:
+            - containerPort: 8080

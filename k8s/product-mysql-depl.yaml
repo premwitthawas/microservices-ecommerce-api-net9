@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-mysql-depl
+  namespace: ecommerce-namespace
+  labels:
+    app: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: ecomwwpzpremregistry.azurecr.io/ecommerce-db-product:latest
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: ec31d315916485460cadb7fc58c90118795ddeccb75147e5d38d4dbcde433c1c
+          - name: MYSQL_DATABASE
+            value: ecommercedbproduct
+          - name: MYSQL_PASSWORD
+            value: 901a923055b3341e6effff67a8e133391c66aa2921dbedf1b834de0f583ec85b
+        ports:
+        - containerPort: 3306
